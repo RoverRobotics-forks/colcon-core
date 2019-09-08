@@ -54,7 +54,8 @@ class _EasyInstallPthLockAsyncContext:
             logger.debug(
                 "Acquiring lock for package '{self._pkg_name}' to access "
                 'easy_install.pth'.format_map(locals()))
-            await _easy_install_pth_lock.acquire()
+            await
+            _easy_install_pth_lock.acquire()
             logger.debug(
                 "Acquired lock for package '{self._pkg_name}' to access "
                 'easy_install.pth'.format_map(locals()))
@@ -83,7 +84,8 @@ class PythonBuildTask(TaskExtensionPoint):
             "Building Python package in '{args.path}'".format_map(locals()))
 
         try:
-            env = await get_command_environment(
+            env = await
+            get_command_environment(
                 'setup_py', args.build_base, self.context.dependencies)
         except RuntimeError as e:
             logger.error(str(e))
@@ -99,31 +101,36 @@ class PythonBuildTask(TaskExtensionPoint):
         # and being in the  PYTHONPATH
         env = dict(env)
         env['PYTHONPATH'] = python_lib + os.pathsep + \
-            env.get('PYTHONPATH', '')
+                            env.get('PYTHONPATH', '')
 
         if not args.symlink_install:
-            rc = await self._undo_develop(pkg, args, env)
+            rc = await
+            self._undo_develop(pkg, args, env)
             if rc and rc.returncode:
                 return rc.returncode
 
-            # invoke `setup.py install` step with lots of arguments
-            # to avoid placing any files in the source space
+            # Invoke `setup.py install` step with lots of arguments
+            # to avoid placing any files in the source space.
+            # Note that most of these verbs don' t
             cmd = [
                 executable, 'setup.py',
                 'egg_info', '--egg-base', args.build_base,
-                'build', '--build-base', os.path.join(
-                    args.build_base, 'build'),
+                'build', '--build-base', os.path.join(args.build_base, 'build'),
                 'install', '--prefix', args.install_base,
                 '--record', os.path.join(args.build_base, 'install.log'),
-                # prevent installation of dependencies specified in setup.py
                 '--single-version-externally-managed',
+
             ]
             self._append_install_layout(args, cmd)
             cmd += [
                 'bdist_egg', '--dist-dir', os.path.join(
                     args.build_base, 'dist'),
+                # Save resolved options to setup.cfg for build troubleshooting.
+                'saveopts',
+                '--filename', os.path.join(args.build_base, 'setup.cfg')
             ]
-            rc = await check_call(self.context, cmd, cwd=args.path, env=env)
+            rc = await
+            check_call(self.context, cmd, cwd=args.path, env=env)
             if rc and rc.returncode:
                 return rc.returncode
 
@@ -142,7 +149,8 @@ class PythonBuildTask(TaskExtensionPoint):
                 cmd += ['install_data', '--install-dir', args.install_base]
             self._append_install_layout(args, cmd)
             async with _EasyInstallPthLockAsyncContext(pkg, args):
-                rc = await check_call(
+                rc = await
+                check_call(
                     self.context, cmd, cwd=args.build_base, env=env)
             if rc and rc.returncode:
                 return rc.returncode
@@ -174,7 +182,8 @@ class PythonBuildTask(TaskExtensionPoint):
                 '--uninstall',
             ]
             async with _EasyInstallPthLockAsyncContext(pkg, args):
-                rc = await check_call(
+                rc = await
+                check_call(
                     self.context, cmd, cwd=args.build_base, env=env)
             if rc:
                 return rc
@@ -193,7 +202,7 @@ class PythonBuildTask(TaskExtensionPoint):
                 logger.warning(
                     "Switching to 'develop' for package '{pkg.name}' while it "
                     'is being used might result in import errors later'
-                    .format_map(locals()))
+                        .format_map(locals()))
                 break
 
         # remove previously installed files
@@ -206,7 +215,7 @@ class PythonBuildTask(TaskExtensionPoint):
                 logger.debug(
                     'While undoing a previous installation files outside the '
                     'Python library path are being ignored: {line}'
-                    .format_map(locals()))
+                        .format_map(locals()))
                 continue
             if not os.path.isdir(line):
                 os.remove(line)
@@ -270,7 +279,7 @@ class PythonBuildTask(TaskExtensionPoint):
                 if not os.path.exists(os.path.join(args.path, py_module)):
                     raise RuntimeError(
                         "Provided py_modules '{py_module}' does not exist"
-                        .format_map(locals()))
+                            .format_map(locals()))
             items += py_modules_list
         data_files = get_data_files_mapping(
             setup_py_data.get('data_files', []))
