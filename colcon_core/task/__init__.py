@@ -12,7 +12,7 @@ from colcon_core.event.job import JobProgress
 from colcon_core.event.output import StderrLine
 from colcon_core.event.output import StdoutLine
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import instantiate_extensions, ExtensionPoint
 from colcon_core.plugin_system import order_extensions_by_name
 from colcon_core.subprocess import run
 
@@ -48,7 +48,7 @@ class TaskContext:
         raise NotImplementedError()
 
 
-class TaskExtensionPoint:
+class TaskExtensionPoint(ExtensionPoint):
     """
     The interface for task extensions.
 
@@ -57,9 +57,6 @@ class TaskExtensionPoint:
     For each instance the attributes `TASK_NAME` and `PACKAGE_TYPE` are being
     set to the (parent) basename of the entry point registering the extension.
     """
-
-    """The version of the task extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
 
     def add_arguments(self, *, parser):
         """
@@ -112,7 +109,7 @@ class TaskExtensionPoint:
         """
         Post a progress event into the event queue.
 
-        :param msg: The message
+        :param message: The message
         """
         self.context.put_event_into_queue(
             JobProgress(self.context.pkg.name, message))

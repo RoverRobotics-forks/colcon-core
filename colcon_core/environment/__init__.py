@@ -1,6 +1,6 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
-
+from abc import abstractmethod
 from collections.abc import Iterable
 import os
 from pathlib import Path
@@ -8,14 +8,14 @@ import traceback
 
 from colcon_core.location import get_relative_package_index_path
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import instantiate_extensions, ExtensionPoint
 from colcon_core.plugin_system import order_extensions_by_priority
 from colcon_core.shell import get_shell_extensions
 
 logger = colcon_logger.getChild(__name__)
 
 
-class EnvironmentExtensionPoint:
+class EnvironmentExtensionPoint(ExtensionPoint):
     """
     The interface for environment extensions.
 
@@ -27,12 +27,7 @@ class EnvironmentExtensionPoint:
     basename of the entry point registering the extension.
     """
 
-    """The version of the environment extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of environment extensions."""
-    PRIORITY = 100
-
+    @abstractmethod
     def create_environment_hooks(self, prefix_path, pkg_name):
         """
         Create the environment hooks for a package.

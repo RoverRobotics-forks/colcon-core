@@ -1,6 +1,8 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
 
+from abc import ABC
+from abc import abstractmethod
 from collections import defaultdict
 import traceback
 
@@ -17,7 +19,7 @@ from colcon_core.topological_order import topological_order_packages
 logger = colcon_logger.getChild(__name__)
 
 
-class PackageSelectionExtensionPoint:
+class PackageSelectionExtensionPoint(ABC):
     """
     The interface for package selection extensions.
 
@@ -28,9 +30,7 @@ class PackageSelectionExtensionPoint:
     the basename of the entry point registering the extension.
     """
 
-    """The version of the package selection extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
+    @abstractmethod
     def add_arguments(self, *, parser):
         """
         Add command line arguments specific to the package selection.
@@ -41,6 +41,7 @@ class PackageSelectionExtensionPoint:
         """
         pass
 
+    @abstractmethod
     def check_parameters(self, *, args, pkg_names):
         """
         Check is the passed arguments have valid values.
@@ -54,6 +55,7 @@ class PackageSelectionExtensionPoint:
         """
         pass
 
+    @abstractmethod
     def select_packages(self, *, args, decorators):
         """
         Identify the packages which should be skipped.
@@ -65,7 +67,6 @@ class PackageSelectionExtensionPoint:
         :param args: The parsed command line arguments
         :param list decorators: The package decorators in topological order
         """
-        raise NotImplementedError()
 
 
 def add_arguments(parser):

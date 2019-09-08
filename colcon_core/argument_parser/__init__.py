@@ -3,15 +3,16 @@
 
 import traceback
 import types
+from abc import abstractmethod
 
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import instantiate_extensions, ExtensionPoint
 from colcon_core.plugin_system import order_extensions_by_priority
 
 logger = colcon_logger.getChild(__name__)
 
 
-class ArgumentParserDecoratorExtensionPoint:
+class ArgumentParserDecoratorExtensionPoint(ExtensionPoint):
     """
     The interface for argument parser decorator extensions.
 
@@ -22,12 +23,7 @@ class ArgumentParserDecoratorExtensionPoint:
     set to the basename of the entry point registering the extension.
     """
 
-    """The version of the argument parser decorator extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of argument parser decorator extensions."""
-    PRIORITY = 100
-
+    @abstractmethod
     def decorate_argument_parser(self, *, parser):
         """
         Decorate an argument parser to perform additional functionality.

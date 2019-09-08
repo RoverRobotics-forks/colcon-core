@@ -1,6 +1,6 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
-
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 import copy
 import traceback
@@ -8,12 +8,13 @@ import traceback
 from colcon_core.logging import colcon_logger
 from colcon_core.package_descriptor import PackageDescriptor
 from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import ExtensionPoint
 from colcon_core.plugin_system import order_extensions_by_priority
 
 logger = colcon_logger.getChild(__name__)
 
 
-class PackageAugmentationExtensionPoint:
+class PackageAugmentationExtensionPoint(ExtensionPoint):
     """
     The interface for package augmentation extensions.
 
@@ -23,12 +24,6 @@ class PackageAugmentationExtensionPoint:
     For each instance the attribute `PACKAGE_AUGMENTATION_NAME` is being set
     to the basename of the entry point registering the extension.
     """
-
-    """The version of the package augmentation extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of package augmentation extensions."""
-    PRIORITY = 100
 
     def augment_packages(
         self, descs, *, additional_argument_names=None

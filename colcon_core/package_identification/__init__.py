@@ -1,6 +1,8 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
 
+from abc import ABC
+from abc import abstractmethod
 import copy
 import traceback
 from typing import Dict
@@ -28,7 +30,7 @@ class IgnoreLocationException(Exception):
     pass
 
 
-class PackageIdentificationExtensionPoint:
+class PackageIdentificationExtensionPoint(ABC):
     """
     The interface for package identification extensions.
 
@@ -39,12 +41,7 @@ class PackageIdentificationExtensionPoint:
     to the basename of the entry point registering the extension.
     """
 
-    """The version of the package identification extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of package identification extensions."""
-    PRIORITY = 100
-
+    @abstractmethod
     def identify(self, desc: PackageDescriptor):
         """
         Check if the given path contains a package.
@@ -61,7 +58,6 @@ class PackageIdentificationExtensionPoint:
         :raises IgnoreLocationException: Skip the path as well as all recursive
           subdirectories
         """
-        raise NotImplementedError()
 
 
 def get_package_identification_extensions():
@@ -118,7 +114,7 @@ def identify(
     if getattr(desc, 'type', None) or getattr(desc, 'name', None):
         logger.warning(
             "package '{desc.path}' has type or name but is incomplete"
-            .format_map(locals()))
+                .format_map(locals()))
     return None
 
 
@@ -165,5 +161,5 @@ def _identify(extensions_same_prio, desc):
     desc = results.pop()
     logger.debug(
         "Package '{desc.path}' with type '{desc.type}' and name '{desc.name}'"
-        .format_map(locals()))
+            .format_map(locals()))
     return desc

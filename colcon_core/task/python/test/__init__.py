@@ -5,7 +5,7 @@ import re
 import traceback
 
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import get_first_line_doc
+from colcon_core.plugin_system import get_first_line_doc, ExtensionPoint
 from colcon_core.plugin_system import instantiate_extensions
 from colcon_core.plugin_system import order_extensions_by_priority
 from colcon_core.plugin_system import satisfies_version
@@ -82,7 +82,7 @@ class PythonTestTask(TaskExtensionPoint):
             return 1
 
 
-class PythonTestingStepExtensionPoint:
+class PythonTestingStepExtensionPoint(ExtensionPoint):
     """
     The interface for Python testing step extensions.
 
@@ -91,12 +91,6 @@ class PythonTestingStepExtensionPoint:
     For each instance the attribute `STEP_TYPE` is being set to the basename of
     the entry point registering the extension.
     """
-
-    """The version of the Python testing step extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of Python testing step extensions."""
-    PRIORITY = 100
 
     def add_arguments(self, *, parser):
         """
@@ -214,7 +208,7 @@ def has_test_dependency(setup_py_data, name):
     for d in tests_require:
         # the name might be followed by a version
         # separated by any of the following: ' ', <, >, <=, >=, ==, !=
-        parts = re.split(r' |<|=|>|!', d)
+        parts = re.split(r'[ <=>!]', d)
         if parts[0] == name:
             return True
     return False

@@ -1,17 +1,18 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
 
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 import traceback
 
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import instantiate_extensions, ExtensionPoint
 from colcon_core.plugin_system import order_extensions_by_priority
 
 logger = colcon_logger.getChild(__name__)
 
 
-class PackageDiscoveryExtensionPoint:
+class PackageDiscoveryExtensionPoint(ExtensionPoint):
     """
     The interface for discovery extensions.
 
@@ -22,19 +23,13 @@ class PackageDiscoveryExtensionPoint:
     the basename of the entry point registering the extension.
     """
 
-    """The version of the discovery extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of discovery extensions."""
-    PRIORITY = 100
-
+    @abstractmethod
     def has_default(self):
         """
         Check if the extension has a default parameter is none are provided.
 
         The method is intended to be overridden in a subclass.
 
-        :param args: The parsed command line arguments
         :returns: True if `discover()` should be called even if no parameters
           are provided, False otherwise
         :rtype: bool
@@ -53,6 +48,7 @@ class PackageDiscoveryExtensionPoint:
         """
         pass
 
+    @abstractmethod
     def has_parameters(self, *, args):
         """
         Check if parameters have been passed for this extension.

@@ -1,12 +1,12 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
 
-from colcon_core.plugin_system import get_first_line_doc
+from colcon_core.plugin_system import get_first_line_doc, ExtensionPoint
 from colcon_core.plugin_system import instantiate_extensions
 from colcon_core.plugin_system import order_extensions_by_priority
 
 
-class EventHandlerExtensionPoint:
+class EventHandlerExtensionPoint(ExtensionPoint):
     """
     The interface for event handler extensions.
 
@@ -21,12 +21,6 @@ class EventHandlerExtensionPoint:
     :py:class:`colcon_core.EventReactor` instance.
     The handler should check the type of the event and only act on known types.
     """
-
-    """The version of the event handler extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of event handler extensions."""
-    PRIORITY = 100
 
     def __init__(self):  # noqa: D107
         super().__init__()

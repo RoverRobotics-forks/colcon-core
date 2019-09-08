@@ -4,13 +4,13 @@
 import traceback
 
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import instantiate_extensions, ExtensionPoint
 from colcon_core.plugin_system import order_extensions_grouped_by_priority
 
 logger = colcon_logger.getChild(__name__)
 
 
-class PrefixPathExtensionPoint:
+class PrefixPathExtensionPoint(ExtensionPoint):
     """
     The interface for prefix path extensions.
 
@@ -19,12 +19,6 @@ class PrefixPathExtensionPoint:
     For each instance the attribute `PREFIX_PATH_NAME` is being set to the
     basename of the entry point registering the extension.
     """
-
-    """The version of the prefix path extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of prefix path extensions."""
-    PRIORITY = 100
 
     def extend_prefix_path(self, paths):
         """

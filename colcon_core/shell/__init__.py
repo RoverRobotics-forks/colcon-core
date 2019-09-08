@@ -1,6 +1,6 @@
 # Copyright 2016-2019 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
-
+from abc import abstractmethod
 from collections import OrderedDict
 from concurrent.futures import CancelledError
 import locale
@@ -13,7 +13,7 @@ import warnings
 from colcon_core.environment_variable import EnvironmentVariable
 from colcon_core.location import get_relative_package_index_path
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import instantiate_extensions, ExtensionPoint
 from colcon_core.plugin_system import order_extensions_grouped_by_priority
 from colcon_core.plugin_system import SkipExtensionException
 from colcon_core.prefix_path import get_chained_prefix_path
@@ -29,7 +29,7 @@ use_all_shell_extensions = os.environ.get(
     ALL_SHELLS_ENVIRONMENT_VARIABLE.name, False)
 
 
-class ShellExtensionPoint:
+class ShellExtensionPoint(ExtensionPoint):
     """
     The interface for shell extensions.
 
@@ -60,33 +60,54 @@ class ShellExtensionPoint:
     PRIORITY = 100
 
     """
+    Name of the shell. To finish instantiating this class, the owner must set
+    this to a string
+    """
+    SHELL_NAME = None
+
+    """
     The format string for a comment line.
 
     It must have the placeholder {comment}.
     This attribute must be defined in a subclass.
     """
-    FORMAT_STR_COMMENT_LINE = None
+    @property
+    @abstractmethod
+    def FORMAT_STR_COMMENT_LINE(self) -> str:
+        pass
+
     """
     The format string to set an environment variable.
 
     It must have the placeholder {name} and {value}.
     This attribute must be defined in a subclass.
     """
-    FORMAT_STR_SET_ENV_VAR = None
+    @property
+    @abstractmethod
+    def FORMAT_STR_SET_ENV_VAR(self) -> str:
+        pass
+
     """
     The format string to use an environment variable.
 
     It must have the placeholder {name}.
     This attribute must be defined in a subclass.
     """
-    FORMAT_STR_USE_ENV_VAR = None
+    @property
+    @abstractmethod
+    def FORMAT_STR_USE_ENV_VAR(self) -> str:
+        pass
+
     """
     The format string to invoke a script file.
 
     It must have the placeholder {prefix} and {script_path}.
     This attribute must be defined in a subclass.
     """
-    FORMAT_STR_INVOKE_SCRIPT = None
+    @property
+    @abstractmethod
+    def FORMAT_STR_INVOKE_SCRIPT(self) -> str:
+        pass
 
     def get_file_extensions(self):
         """
@@ -100,6 +121,7 @@ class ShellExtensionPoint:
         """
         return (self.SHELL_NAME, )
 
+    @abstractmethod
     def create_prefix_script(self, prefix_path, merge_install):
         """
         Create a script in the install prefix path.
@@ -112,7 +134,7 @@ class ShellExtensionPoint:
         :param bool merge_install: The flag if all packages share the same
           install prefix
         """
-        raise NotImplementedError()
+        pass
 
     def _get_prefix_util_path(self):
         """
@@ -135,6 +157,7 @@ class ShellExtensionPoint:
         """
         return Path(__file__).parent / 'template' / 'prefix_util.py.em'
 
+    @abstractmethod
     def create_package_script(self, prefix_path, pkg_name, hooks):
         """
         Create a script for a specific package.
@@ -147,8 +170,9 @@ class ShellExtensionPoint:
         :param str pkg_name: The package name
         :param list hooks: The relative paths to the hook scripts
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def create_hook_set_value(
         self, env_hook_name, prefix_path, pkg_name, name, value,
     ):
@@ -165,8 +189,9 @@ class ShellExtensionPoint:
         :returns: The relative path to the created hook script
         :rtype: Path
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def create_hook_append_value(
         self, env_hook_name, prefix_path, pkg_name, name, value,
     ):
@@ -183,8 +208,9 @@ class ShellExtensionPoint:
         :returns: The relative path to the created hook script
         :rtype: Path
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def create_hook_prepend_value(
         self, env_hook_name, prefix_path, pkg_name, name, subdirectory,
     ):
@@ -201,8 +227,9 @@ class ShellExtensionPoint:
         :returns: The relative path to the created hook script
         :rtype: Path
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def create_hook_include_file(
         self, env_hook_name, prefix_path, pkg_name, relative_path,
     ):
@@ -218,7 +245,7 @@ class ShellExtensionPoint:
         :returns: The relative path to the created hook script
         :rtype: Path
         """
-        raise NotImplementedError()
+        pass
 
     async def generate_command_environment(
         self, task_name, build_base, dependencies,
@@ -304,7 +331,6 @@ async def get_environment_variables(cmd, *, cwd=None, shell=True):
     """
     Get the environment variables from the output of the command.
 
-    :param args: the sequence of program arguments
     :param cwd: the working directory for the subprocess
     :param shell: whether to use the shell as the program to execute
     :rtype: dict

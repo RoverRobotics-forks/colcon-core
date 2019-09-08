@@ -1,14 +1,25 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
-
+from abc import ABC
 from collections import OrderedDict
 import traceback
+from typing import Mapping
+
+import typing
 
 from colcon_core.entry_point import load_entry_points
 from colcon_core.logging import colcon_logger
 from pkg_resources import parse_version
 
 logger = colcon_logger.getChild(__name__)
+
+
+class ExtensionPoint(ABC):
+    """The version of this extension interface."""
+    EXTENSION_POINT_VERSION = '1.0'
+
+    """The default priority of this among similar extensions."""
+    PRIORITY = 100
 
 
 class SkipExtensionException(Exception):
@@ -23,7 +34,7 @@ class SkipExtensionException(Exception):
 
 def instantiate_extensions(
     group_name, *, exclude_names=None, unique_instance=False
-):
+) -> Mapping[str, ExtensionPoint]:
     """
     Instantiate all extensions within a group.
 
@@ -31,7 +42,7 @@ def instantiate_extensions(
     :param exclude_names: a list of entry point names to exclude
     :param bool unique_instance: The flag if each extensions should be
       instantiated even when it has been created and cached before
-    :returns: dict of extensions
+    :returns: extensions by name
     """
     extension_types = load_entry_points(group_name)
     extension_instances = {}
@@ -64,7 +75,7 @@ def _instantiate_extension(
     except SkipExtensionException as e:  # noqa: F841
         logger.info(
             "Skipping extension '{group_name}.{extension_name}': {e}"
-            .format_map(locals()))
+                .format_map(locals()))
         extension_instance = None
     except Exception as e:  # noqa: F841
         # catch exceptions raised in extension constructor
@@ -78,7 +89,7 @@ def _instantiate_extension(
     return extension_instance
 
 
-def order_extensions_by_name(extensions):
+def order_extensions_by_name(extensions: Mapping[str, ExtensionPoint]):
     """
     Order the extensions based on the entry point name.
 

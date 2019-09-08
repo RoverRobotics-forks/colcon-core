@@ -4,16 +4,17 @@
 import copy
 import logging
 import os
+from abc import abstractmethod
 from pathlib import Path
 
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import instantiate_extensions
+from colcon_core.plugin_system import instantiate_extensions, ExtensionPoint
 from colcon_core.plugin_system import order_extensions_by_name
 
 logger = colcon_logger.getChild(__name__)
 
 
-class VerbExtensionPoint:
+class VerbExtensionPoint(ExtensionPoint):
     """
     The interface for verb extensions.
 
@@ -23,9 +24,7 @@ class VerbExtensionPoint:
     the entry point registering the extension.
     """
 
-    """The version of the verb extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
+    @abstractmethod
     def add_arguments(self, *, parser):
         """
         Add command line arguments specific to the verb.
@@ -36,6 +35,7 @@ class VerbExtensionPoint:
         """
         pass
 
+    @abstractmethod
     def main(self, *, context):
         """
         Execute the verb extension logic.

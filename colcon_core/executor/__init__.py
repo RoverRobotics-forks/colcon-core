@@ -1,6 +1,6 @@
 # Copyright 2016-2018 Dirk Thomas
 # Licensed under the Apache License, Version 2.0
-
+from abc import abstractmethod
 from concurrent.futures import CancelledError
 from enum import Enum
 import inspect
@@ -16,7 +16,7 @@ from colcon_core.event.job import JobStarted
 from colcon_core.event.output import StderrLine
 from colcon_core.event_reactor import create_event_reactor
 from colcon_core.logging import colcon_logger
-from colcon_core.plugin_system import get_first_line_doc
+from colcon_core.plugin_system import get_first_line_doc, ExtensionPoint
 from colcon_core.plugin_system import instantiate_extensions
 from colcon_core.plugin_system import order_extensions_grouped_by_priority
 from colcon_core.subprocess import SIGINT_RESULT
@@ -130,7 +130,7 @@ class OnError(Enum):
     skip_downstream = 4
 
 
-class ExecutorExtensionPoint:
+class ExecutorExtensionPoint(ExtensionPoint):
     """
     The interface for executor extensions.
 
@@ -140,16 +140,11 @@ class ExecutorExtensionPoint:
     basename of the entry point registering the extension.
     """
 
-    """The version of the executor extension interface."""
-    EXTENSION_POINT_VERSION = '1.0'
-
-    """The default priority of executor extensions."""
-    PRIORITY = 100
-
     def __init__(self):  # noqa: D107
         super().__init__()
         self._event_controller = None
 
+    @abstractmethod
     def add_arguments(self, *, parser):
         """
         Add command line arguments specific to the executor.
@@ -169,6 +164,7 @@ class ExecutorExtensionPoint:
         """
         self._event_controller = event_controller
 
+    @abstractmethod
     def execute(
         self, args, jobs, *, on_error: OnError = None, abort_on_error=None
     ):
@@ -178,8 +174,6 @@ class ExecutorExtensionPoint:
         This method must be overridden in a subclass.
         Subclass should not include the deprecated keyword argument
         `abort_on_error` in their signature.
-
-        :param arguments: The passed arguments
 
         The deprecated API accepts the following separate arguments:
         :param args: The parsed command line arguments
